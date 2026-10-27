@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "dev.fede.oma-hevy",
+  "name": "Omahevy",
+  "version": "1.0.0",
+  "author": "Federico Baroni",
+  "license": "MIT",
+  "description": "Hevy workouts, weekly volume, muscle balance and records in your Omarchy bar",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Hevy",
+    "description": "Weekly training volume and a full Hevy dashboard in your bar",
+    "category": "Health",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
