@@ -133,6 +133,13 @@ the plugin. After structural changes to `Panel.qml`, restart the shell once
 The marketplace indexes the root `manifest.json`, so keep the ID
 `dev.fede.oma-hevy` stable after the first release.
 
+## Credits
+
+The bar widget wiring (`BarWidget.qml`: panel loader, injection and popout
+handling) follows [nathanrgagnon/omawhoop](https://github.com/NathanRGagnon/omawhoop)
+(MIT), which itself follows the pattern of Omarchy's built-in clock and weather
+widgets. The panel, data model, Hevy client and tests are original to Omahevy.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
