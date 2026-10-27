@@ -19,6 +19,10 @@ Item {
   property var hostWidget: null
 
   property bool opened: false
+  // Full screen: the card takes the whole screen and the layout widens. Default
+  // with `omarchy bar set fbaroni.oma-hevy fullscreen true --json`; toggle with F.
+  property bool fullscreen: false
+  onSettingsChanged: if (settings && settings.fullscreen === true) fullscreen = true
   property var snapshot: null
   property bool firstSyncDone: false
   property bool connectRequested: false
@@ -210,6 +214,7 @@ Item {
     function close(): void { root.close() }
     function toggle(): void { root.toggle() }
     function demo(): void { root.previewDemo(); root.open() }
+    function toggleFullscreen(): void { root.fullscreen = !root.fullscreen }
     function tab(name: string): void { if (["overview", "progress", "patterns", "history"].indexOf(name) >= 0) root.tab = name }
     function scroll(offset: string): void { deepScroller.contentY = Math.max(0, parseFloat(offset) || 0) }
   }
@@ -349,6 +354,7 @@ Item {
       focus: true
       Keys.onEscapePressed: if (!root.confirmDisconnect) root.close()
       Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_F && root.authenticated && !root.showConnect) { root.fullscreen = !root.fullscreen; return }
         if (!root.authenticated || root.showConnect) return
         var keys = [Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4]
         var tabs = ["overview", "progress", "patterns", "history"]
@@ -381,11 +387,13 @@ Item {
                                            (parent.height - Style.space(48)) / baseH)
       readonly property real wanted: (root.settings && Number(root.settings.scale) > 0)
         ? Number(root.settings.scale) : 1.5
-      width: baseW
-      height: baseH
-      scale: Math.max(0.5, Math.min(wanted, fit))
+      readonly property real normalScale: Math.max(0.5, Math.min(wanted, fit))
+      readonly property real fullScale: Math.max(0.7, Math.min(2.0, parent.height / baseH))
+      scale: root.fullscreen ? fullScale : normalScale
+      width: root.fullscreen ? parent.width / scale : baseW
+      height: root.fullscreen ? parent.height / scale : baseH
       transformOrigin: Item.Center
-      radius: Math.max(8, Style.cornerRadius)
+      radius: root.fullscreen ? 0 : Math.max(8, Style.cornerRadius)
       color: Color.popups.background
       border.width: 1
       border.color: Util.alpha(root.hevyBlue, 0.42)
@@ -506,6 +514,17 @@ Item {
                 horizontalPadding: Style.space(7)
                 verticalPadding: Style.space(5)
                 onClicked: root.refresh(true)
+              }
+
+              Button {
+                iconText: root.fullscreen ? "\uF066" : "\uF065"
+                tooltipText: root.fullscreen ? "Exit full screen (F)" : "Full screen (F)"
+                foreground: root.barForeground
+                accent: root.hevySky
+                fontFamily: root.fontFamily
+                horizontalPadding: Style.space(7)
+                verticalPadding: Style.space(5)
+                onClicked: root.fullscreen = !root.fullscreen
               }
 
               Button {

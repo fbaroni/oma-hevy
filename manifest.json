@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "fbaroni.oma-hevy",
   "name": "Omahevy",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "author": "Federico Baroni",
   "license": "MIT",
   "description": "Hevy workouts, weekly volume, muscle balance and records in your Omarchy bar",

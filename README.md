@@ -133,6 +133,34 @@ the plugin. After structural changes to `Panel.qml`, restart the shell once
 The marketplace indexes the root `manifest.json`, so keep the ID
 `fbaroni.oma-hevy` stable after the first release.
 
+## Beyond the overview
+
+Four tabs (keys `1`–`4`). **Overview** is the weekly dashboard. The others are
+computed from the workouts already fetched, so they cost no extra API calls:
+
+- **Progress:** estimated 1RM trend for your most repeated lifts, every
+  personal record with the number it beat, and a few observations.
+- **Patterns:** sessions by weekday and time of day, reps-per-set ranges, working
+  sets per muscle group by week, push / pull / legs balance (shoulder work is
+  split by exercise name, so face pulls count as pull) and average session
+  length.
+- **History:** your last ten sessions with their top lifts.
+
+Every observation states the sample it rests on. They are counts and ratios,
+not training advice.
+
+## Size, full screen and the bar
+
+The dashboard scales itself to fill the screen (up to 1.5×). Press `F`, use the
+expand button in the header, or run `omarchy-shell fbaroni.oma-hevy toggleFullscreen` to go
+full screen, where the card takes the whole screen and the layout widens.
+
+```sh
+omarchy bar set fbaroni.oma-hevy scale 1.3 --json         # fixed size instead of auto
+omarchy bar set fbaroni.oma-hevy fullscreen true --json   # always open full screen
+omarchy bar set fbaroni.oma-hevy hidden true --json       # no bar button; open it from the menu
+```
+
 ## Credits
 
 The bar widget wiring (`BarWidget.qml`: panel loader, injection and popout
