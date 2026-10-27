@@ -20,12 +20,12 @@ https://github.com/<your-username>/oma-hevy
 ## 2. Smoke-test a clean install
 
 ```sh
-omarchy plugin remove dev.fede.oma-hevy --yes
+omarchy plugin remove fbaroni.oma-hevy --yes
 omarchy plugin add https://github.com/<your-username>/oma-hevy.git --enable
 ```
 
 Click the bar widget, paste an API key, confirm the dashboard opens and syncs.
-`omarchy plugin validate ~/.config/omarchy/plugins/dev.fede.oma-hevy` should
+`omarchy plugin validate ~/.config/omarchy/plugins/fbaroni.oma-hevy` should
 exit 0.
 
 ## 3. Submit the marketplace issue
@@ -70,7 +70,7 @@ Checklist:
 ## 4. After approval
 
 - Tag the release (`git tag v1.0.0 && git push --tags`).
-- Keep the manifest `id` (`dev.fede.oma-hevy`) stable forever: installs and
+- Keep the manifest `id` (`fbaroni.oma-hevy`) stable forever: installs and
   marketplace entries key off it.
 - Update the marketplace entry with the same issue form if the repository or
   description changes.

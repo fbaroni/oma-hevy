@@ -40,7 +40,7 @@ omarchy plugin add https://github.com/<your-username>/oma-hevy.git --enable
 Then move it wherever you like in the bar:
 
 ```sh
-omarchy bar move dev.fede.oma-hevy --section right
+omarchy bar move fbaroni.oma-hevy --section right
 ```
 
 ## Setup
@@ -66,7 +66,7 @@ dashboard without touching your account.
 The dashboard also answers IPC, so you can bind it:
 
 ```sh
-omarchy-shell dev.fede.oma-hevy toggle
+omarchy-shell fbaroni.oma-hevy toggle
 ```
 
 ## Configuration
@@ -117,7 +117,7 @@ bin/hevy-key.py    save/test/clear the local key
 lib/hevy_api.py    Hevy client, cache and snapshot maths
 ```
 
-Saving files under `~/.config/omarchy/plugins/dev.fede.oma-hevy/` hot-reloads
+Saving files under `~/.config/omarchy/plugins/fbaroni.oma-hevy/` hot-reloads
 the plugin. After structural changes to `Panel.qml`, restart the shell once
 (`omarchy restart shell`) so the overlay window is rebuilt cleanly.
 
@@ -131,7 +131,7 @@ the plugin. After structural changes to `Panel.qml`, restart the shell once
    existing tags per submission).
 
 The marketplace indexes the root `manifest.json`, so keep the ID
-`dev.fede.oma-hevy` stable after the first release.
+`fbaroni.oma-hevy` stable after the first release.
 
 ## Credits
 

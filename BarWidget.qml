@@ -4,7 +4,12 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "dev.fede.oma-hevy"
+  moduleName: "fbaroni.oma-hevy"
+
+  // `"hidden": true` in this widget's shell.json entry removes the button from
+  // the bar. The widget stays loaded, so the panel still opens from the Omarchy
+  // menu / app launcher or over IPC.
+  readonly property bool hiddenInBar: !!(root.settings && root.settings.hidden === true)
 
   function injectPanel() {
     var target = panelLoader.item
@@ -61,7 +66,7 @@ BarWidget {
   WidgetButton {
     id: button
     bar: root.bar
-    text: "H " + (panelLoader.item ? panelLoader.item.barLabel : "—")
+    text: root.hiddenInBar ? "" : "H " + (panelLoader.item ? panelLoader.item.barLabel : "—")
     horizontalMargin: 6
     verticalPadding: 6
     fixedHeight: root.barSize

@@ -38,6 +38,17 @@ Item {
   readonly property var history: (snapshot && snapshot.history) ? snapshot.history : []
   readonly property var muscles: (snapshot && snapshot.muscles) ? snapshot.muscles : []
   readonly property var records: (snapshot && snapshot.records) ? snapshot.records : []
+
+  // Overview is the original dashboard; the other tabs read snapshot.deep.
+  property string tab: "overview"
+  readonly property var deep: (snapshot && snapshot.deep && !snapshot.deep.error) ? snapshot.deep : null
+  readonly property var dd: deep ? deep : ({
+    window_weeks: 16, sessions_in_window: 0, insights: [], progression: [], prs: [],
+    patterns: { weekday: [], time_of_day: [], rep_ranges: [] }, weekly_sets: { weeks: [], rows: [] },
+    duration_weeks: [], balance: {}, recent: [], averages: {}
+  })
+  readonly property real gridLabelW: Style.space(78)
+  readonly property real gridAvgW: Style.space(70)
   readonly property var calendar: (snapshot && snapshot.calendar) ? snapshot.calendar : []
   readonly property real avgSessions: {
     if (history.length === 0) return 0
@@ -194,11 +205,13 @@ Item {
   }
 
   IpcHandler {
-    target: "dev.fede.oma-hevy"
+    target: "fbaroni.oma-hevy"
     function open(): void { root.open() }
     function close(): void { root.close() }
     function toggle(): void { root.toggle() }
     function demo(): void { root.previewDemo(); root.open() }
+    function tab(name: string): void { if (["overview", "progress", "patterns", "history"].indexOf(name) >= 0) root.tab = name }
+    function scroll(offset: string): void { deepScroller.contentY = Math.max(0, parseFloat(offset) || 0) }
   }
 
   Process {
@@ -335,6 +348,13 @@ Item {
       anchors.fill: parent
       focus: true
       Keys.onEscapePressed: if (!root.confirmDisconnect) root.close()
+      Keys.onPressed: function(event) {
+        if (!root.authenticated || root.showConnect) return
+        var keys = [Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4]
+        var tabs = ["overview", "progress", "patterns", "history"]
+        var i = keys.indexOf(event.key)
+        if (i >= 0 && (i === 0 || root.deep !== null)) root.tab = tabs[i]
+      }
     }
 
     // Dimmed backdrop; clicking anywhere outside the card dismisses.
@@ -352,8 +372,19 @@ Item {
     Rectangle {
       id: card
       anchors.centerIn: parent
-      width: Math.min(parent.width - Style.space(72), Style.space(1000))
-      height: Math.min(parent.height - Style.space(72), Style.space(800))
+      // Designed at a fixed size, then scaled up to fill the screen. Override
+      // with `omarchy bar set <plugin-id> scale 1.3 --json` (it never exceeds
+      // the screen).
+      readonly property real baseW: Style.space(1000)
+      readonly property real baseH: Style.space(800)
+      readonly property real fit: Math.min((parent.width - Style.space(48)) / baseW,
+                                           (parent.height - Style.space(48)) / baseH)
+      readonly property real wanted: (root.settings && Number(root.settings.scale) > 0)
+        ? Number(root.settings.scale) : 1.5
+      width: baseW
+      height: baseH
+      scale: Math.max(0.5, Math.min(wanted, fit))
+      transformOrigin: Item.Center
       radius: Math.max(8, Style.cornerRadius)
       color: Color.popups.background
       border.width: 1
@@ -496,12 +527,74 @@ Item {
             color: root.line
           }
 
+          // ---------------------------------------------------------- tabs
+          Item {
+            id: tabBar
+            width: parent.width
+            height: Style.space(26)
+            visible: root.authenticated && !root.showConnect
+
+            Row {
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              spacing: Style.space(6)
+
+              Repeater {
+                model: [
+                  { key: "overview", label: "Overview" },
+                  { key: "progress", label: "Progress" },
+                  { key: "patterns", label: "Patterns" },
+                  { key: "history", label: "History" }
+                ]
+
+                Rectangle {
+                  id: tabChip
+                  required property var modelData
+                  readonly property bool active: root.tab === modelData.key
+                  readonly property bool ready: modelData.key === "overview" || root.deep !== null
+                  width: tabLabel.implicitWidth + Style.space(22)
+                  height: Style.space(22)
+                  radius: height / 2
+                  color: active ? Util.alpha(root.hevyBlue, 0.22) : "transparent"
+                  border.width: 1
+                  border.color: active ? root.hevySky : root.line
+                  opacity: ready ? 1 : 0.4
+
+                  Text {
+                    id: tabLabel
+                    anchors.centerIn: parent
+                    text: tabChip.modelData.label
+                    color: tabChip.active ? root.hevySky : root.dim
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    font.bold: tabChip.active
+                  }
+                  MouseArea {
+                    anchors.fill: parent
+                    enabled: tabChip.ready
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.tab = tabChip.modelData.key
+                  }
+                }
+              }
+            }
+
+            Text {
+              anchors.right: parent.right
+              anchors.verticalCenter: parent.verticalCenter
+              text: root.deep === null && root.authenticated && !root.isDemo ? "refresh (⟳) to load the extra tabs" : "keys 1–4 · wheel scrolls"
+              color: root.faint
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+            }
+          }
+
           // --------------------------------------------------------- body
           Item {
             id: body
             width: parent.width
-            height: cardColumn.height - header.height - footer.height - Style.spacing.hairline
-              - cardColumn.spacing * 3
+            height: cardColumn.height - header.height - tabBar.height - footer.height - Style.spacing.hairline
+              - cardColumn.spacing * 4
 
             // Connect / loading / error all share the centered state view.
             Column {
@@ -653,7 +746,7 @@ Item {
 
             // ------------------------------------------------ dashboard grid
             Row {
-              visible: root.authenticated && !root.showConnect
+              visible: root.authenticated && !root.showConnect && root.tab === "overview"
               anchors.fill: parent
               spacing: Style.space(18)
 
@@ -1475,6 +1568,683 @@ Item {
                 }
               }
             }
+
+            // ---------------------------------------------- extra tabs
+            Flickable {
+              id: deepScroller
+              visible: root.authenticated && !root.showConnect && root.tab !== "overview"
+              anchors.fill: parent
+              contentWidth: width
+              contentHeight: deepColumn.height
+              clip: true
+              boundsBehavior: Flickable.StopAtBounds
+              flickableDirection: Flickable.VerticalFlick
+
+              Column {
+                id: deepColumn
+                width: deepScroller.width - Style.space(10)
+                spacing: Style.space(12)
+
+                Text {
+                  visible: root.deep === null
+                  width: parent.width
+                  horizontalAlignment: Text.AlignHCenter
+                  topPadding: Style.space(60)
+                  wrapMode: Text.Wrap
+                  text: root.snapshot && root.snapshot.deep && root.snapshot.deep.error
+                    ? "The extra analysis failed: " + Model.truncate(root.snapshot.deep.error, 160)
+                    : "Refresh (⟳) to load progression, patterns and history."
+                  color: root.dim
+                  font.family: root.fontFamily
+                  font.pixelSize: Style.font.body
+                }
+
+                // ============================== PROGRESS
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "progress" && root.dd.insights.length > 0
+                  title: "WHAT YOUR DATA SAYS"
+                  hint: root.dd.sessions_in_window + " sessions · last " + root.dd.window_weeks + " weeks"
+
+                  Column {
+                    width: parent.width
+                    spacing: Style.space(8)
+
+                    Repeater {
+                      model: root.dd.insights
+
+                      Rectangle {
+                        id: tipCard
+                        required property var modelData
+                        width: parent.width
+                        height: tipColumn.implicitHeight + Style.space(18)
+                        radius: Style.space(6)
+                        color: Util.alpha(root.barForeground, 0.04)
+
+                        Rectangle {
+                          x: Style.space(8)
+                          anchors.verticalCenter: parent.verticalCenter
+                          width: Style.space(3)
+                          height: parent.height - Style.space(14)
+                          radius: width / 2
+                          color: tipCard.modelData.tone === "good" ? root.hevyGreen : tipCard.modelData.tone === "bad" ? root.hevyRose : root.faint
+                        }
+                        Column {
+                          id: tipColumn
+                          x: Style.space(22)
+                          y: Style.space(9)
+                          width: parent.width - Style.space(34)
+                          spacing: Style.space(2)
+                          Text {
+                            width: parent.width
+                            text: tipCard.modelData.title
+                            color: root.barForeground
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.bodySmall
+                            font.bold: true
+                          }
+                          Text {
+                            width: parent.width
+                            wrapMode: Text.Wrap
+                            text: tipCard.modelData.text
+                            color: root.dim
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "progress"
+                  title: "LIFT PROGRESSION"
+                  hint: "estimated 1RM · your most repeated lifts"
+
+                  Column {
+                    width: parent.width
+
+                    Text {
+                      visible: root.dd.progression.length === 0
+                      text: "Repeat a lift in two sessions and its trend shows up here."
+                      color: root.faint
+                      font.family: root.fontFamily
+                      font.pixelSize: Style.font.bodySmall
+                    }
+
+                    Repeater {
+                      model: root.dd.progression
+
+                      Item {
+                        id: liftRow
+                        required property var modelData
+                        required property int index
+                        width: parent.width
+                        height: Style.space(36)
+                        readonly property string tone: Model.changeTone(modelData.change_pct)
+                        readonly property color toneColor: tone === "up" ? root.hevyGreen : tone === "down" ? root.hevyRose : root.hevySky
+
+                        Rectangle {
+                          visible: liftRow.index > 0
+                          width: parent.width
+                          height: Style.spacing.hairline
+                          color: root.line
+                        }
+                        Column {
+                          x: 0
+                          width: parent.width * 0.36
+                          anchors.verticalCenter: parent.verticalCenter
+                          Text {
+                            width: parent.width
+                            text: liftRow.modelData.title
+                            color: root.barForeground
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.bodySmall
+                            elide: Text.ElideRight
+                          }
+                          Text {
+                            width: parent.width
+                            text: liftRow.modelData.muscle + " · " + liftRow.modelData.sessions + " sessions"
+                            color: root.faint
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                            elide: Text.ElideRight
+                          }
+                        }
+                        Spark {
+                          x: parent.width * 0.40
+                          width: parent.width * 0.24
+                          height: Style.space(24)
+                          anchors.verticalCenter: parent.verticalCenter
+                          series: liftRow.modelData.series
+                          color: liftRow.toneColor
+                        }
+                        Column {
+                          x: parent.width * 0.68
+                          width: parent.width * 0.18
+                          anchors.verticalCenter: parent.verticalCenter
+                          Text {
+                            text: Model.setLabel(liftRow.modelData.last.weight_kg, liftRow.modelData.last.reps, root.unit)
+                            color: root.dim
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                          }
+                          Text {
+                            text: "best " + Model.weightLabel(liftRow.modelData.best_e1rm_kg, root.unit)
+                            color: root.faint
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                          }
+                        }
+                        Text {
+                          anchors.right: parent.right
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: liftRow.modelData.change_pct === null ? "—" : Model.deltaLabel(liftRow.modelData.change_pct)
+                          color: liftRow.toneColor
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.bodySmall
+                          font.bold: true
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "progress" && root.dd.prs.length > 0
+                  title: "RECENT RECORDS"
+                  hint: "each time a lift beat its own best"
+
+                  Column {
+                    width: parent.width
+
+                    Repeater {
+                      model: root.dd.prs
+
+                      Item {
+                        id: prRow
+                        required property var modelData
+                        required property int index
+                        width: parent.width
+                        height: Style.space(28)
+
+                        Rectangle {
+                          visible: prRow.index > 0
+                          width: parent.width
+                          height: Style.spacing.hairline
+                          color: root.line
+                        }
+                        Text {
+                          x: 0
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: "★"
+                          color: root.hevyAmber
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption
+                        }
+                        Text {
+                          x: Style.space(18)
+                          width: parent.width * 0.4
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: prRow.modelData.title
+                          color: root.barForeground
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.bodySmall
+                          elide: Text.ElideRight
+                        }
+                        Text {
+                          x: parent.width * 0.46
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: Model.setLabel(prRow.modelData.weight_kg, prRow.modelData.reps, root.unit)
+                          color: root.dim
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption
+                        }
+                        Text {
+                          x: parent.width * 0.64
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: Model.weightLabel(prRow.modelData.previous_kg, root.unit) + " → " + Model.weightLabel(prRow.modelData.e1rm_kg, root.unit)
+                          color: root.hevyAmber
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption
+                          font.bold: true
+                        }
+                        Text {
+                          anchors.right: parent.right
+                          anchors.verticalCenter: parent.verticalCenter
+                          text: Model.shortDate(prRow.modelData.date)
+                          color: root.faint
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption
+                        }
+                      }
+                    }
+                  }
+                }
+
+                // ============================== PATTERNS
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "patterns"
+                  title: "WHEN YOU TRAIN"
+                  hint: "sessions by weekday · last " + root.dd.window_weeks + " weeks"
+
+                  Column {
+                    width: parent.width
+                    spacing: Style.space(14)
+
+                    Row {
+                      width: parent.width
+                      height: Style.space(96)
+
+                      Repeater {
+                        model: root.dd.patterns.weekday
+
+                        Item {
+                          id: dayCol
+                          required property var modelData
+                          width: parent.width / 7
+                          height: Style.space(96)
+                          readonly property real share: Model.barShare(root.dd.patterns.weekday, "workouts", modelData.workouts)
+
+                          Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: parent.height - Style.space(18) - dayBar.height - implicitHeight - Style.space(2)
+                            text: dayCol.modelData.workouts
+                            color: root.dim
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                          }
+                          Rectangle {
+                            id: dayBar
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width * 0.5
+                            height: Math.max(3, dayCol.share * (Style.space(96) - Style.space(40)))
+                            y: parent.height - Style.space(18) - height
+                            radius: Style.space(3)
+                            color: root.hevySky
+                            opacity: dayCol.modelData.workouts > 0 ? 0.9 : 0.25
+                          }
+                          Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: parent.height - implicitHeight
+                            text: dayCol.modelData.label
+                            color: root.faint
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption
+                          }
+                        }
+                      }
+                    }
+
+                    Column {
+                      width: parent.width
+                      spacing: Style.space(2)
+
+                      Repeater {
+                        model: root.dd.patterns.time_of_day
+
+                        HBar {
+                          required property var modelData
+                          width: parent.width
+                          label: Model.timeLabel(modelData.key)
+                          share: Model.barShare(root.dd.patterns.time_of_day, "workouts", modelData.workouts)
+                          valueText: modelData.workouts + (modelData.workouts === 1 ? " session" : " sessions")
+                          barColor: root.hevyViolet
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "patterns"
+                  title: "WORKING SETS PER MUSCLE"
+                  hint: "last 8 weeks · 10–20 a week is a common target"
+
+                  Column {
+                    id: heatGrid
+                    width: parent.width
+                    spacing: Style.space(3)
+                    readonly property int weekCount: Math.max(1, root.dd.weekly_sets.weeks.length)
+                    readonly property real cellW: (width - root.gridLabelW - root.gridAvgW) / weekCount
+
+                    Row {
+                      Item { width: root.gridLabelW; height: Style.space(14) }
+                      Repeater {
+                        model: root.dd.weekly_sets.weeks
+                        Text {
+                          required property string modelData
+                          width: heatGrid.cellW
+                          horizontalAlignment: Text.AlignHCenter
+                          text: Model.shortDate(modelData).split(" ")[0] + " " + Model.shortDate(modelData).split(" ")[1]
+                          color: root.faint
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption - 1
+                        }
+                      }
+                      Text {
+                        width: root.gridAvgW
+                        horizontalAlignment: Text.AlignRight
+                        text: "avg 4w"
+                        color: root.faint
+                        font.family: root.fontFamily
+                        font.pixelSize: Style.font.caption
+                      }
+                    }
+
+                    Repeater {
+                      model: root.dd.weekly_sets.rows
+
+                      Row {
+                        id: heatRow
+                        required property var modelData
+                        height: Style.space(26)
+
+                        Text {
+                          width: root.gridLabelW
+                          height: parent.height
+                          verticalAlignment: Text.AlignVCenter
+                          text: heatRow.modelData.key.charAt(0).toUpperCase() + heatRow.modelData.key.slice(1)
+                          color: root.dim
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.bodySmall
+                        }
+                        Repeater {
+                          model: heatRow.modelData.weeks
+
+                          Rectangle {
+                            required property int modelData
+                            width: heatGrid.cellW - 3
+                            height: Style.space(23)
+                            radius: Style.space(4)
+                            color: Util.alpha(root.hevySky, Model.heatAlpha(modelData))
+
+                            Text {
+                              anchors.centerIn: parent
+                              text: parent.modelData > 0 ? parent.modelData : "·"
+                              color: parent.modelData >= 6 ? root.barForeground : root.faint
+                              font.family: root.fontFamily
+                              font.pixelSize: Style.font.caption
+                            }
+                          }
+                        }
+                        Text {
+                          width: root.gridAvgW
+                          height: parent.height
+                          verticalAlignment: Text.AlignVCenter
+                          horizontalAlignment: Text.AlignRight
+                          readonly property real avg: Model.recentAverage(heatRow.modelData.weeks)
+                          text: (Math.round(avg * 10) / 10) + "/wk"
+                          color: avg < 6 ? root.hevyRose : avg <= 20 ? root.hevyGreen : root.hevyAmber
+                          font.family: root.fontFamily
+                          font.pixelSize: Style.font.caption
+                          font.bold: true
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "patterns"
+                  title: "PUSH · PULL · LEGS"
+                  hint: "working sets, last " + (root.dd.balance.weeks || 4) + " weeks"
+
+                  Column {
+                    width: parent.width
+                    spacing: Style.space(8)
+                    readonly property real total: Math.max(1, (root.dd.balance.push || 0) + (root.dd.balance.pull || 0)
+                      + (root.dd.balance.legs || 0) + (root.dd.balance.core || 0))
+
+                    Row {
+                      width: parent.width
+                      height: Style.space(14)
+                      spacing: 2
+                      Repeater {
+                        model: [
+                          { key: "push", color: root.hevyBlue },
+                          { key: "pull", color: root.hevyGreen },
+                          { key: "legs", color: root.hevyAmber },
+                          { key: "core", color: root.hevyViolet }
+                        ]
+                        Rectangle {
+                          required property var modelData
+                          width: Math.max(2, (parent.width - 6) * ((root.dd.balance[modelData.key] || 0) / parent.parent.total))
+                          height: parent.height
+                          radius: height / 2
+                          color: modelData.color
+                          visible: (root.dd.balance[modelData.key] || 0) > 0
+                        }
+                      }
+                    }
+
+                    Row {
+                      spacing: Style.space(18)
+                      Repeater {
+                        model: [
+                          { key: "push", label: "Push", color: root.hevyBlue },
+                          { key: "pull", label: "Pull", color: root.hevyGreen },
+                          { key: "legs", label: "Legs", color: root.hevyAmber },
+                          { key: "core", label: "Core", color: root.hevyViolet }
+                        ]
+                        Row {
+                          required property var modelData
+                          spacing: Style.space(6)
+                          Rectangle {
+                            width: Style.space(9)
+                            height: width
+                            radius: width / 2
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: parent.modelData.color
+                          }
+                          Text {
+                            text: parent.modelData.label + " " + (root.dd.balance[parent.modelData.key] || 0)
+                            color: root.dim
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.bodySmall
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "patterns"
+                  title: "HOW YOU TRAIN"
+                  hint: "reps per set and session length"
+
+                  Column {
+                    width: parent.width
+                    spacing: Style.space(12)
+
+                    Column {
+                      width: parent.width
+                      spacing: Style.space(2)
+                      Repeater {
+                        model: root.dd.patterns.rep_ranges
+
+                        HBar {
+                          required property var modelData
+                          width: parent.width
+                          label: modelData.range + " reps"
+                          share: Model.barShare(root.dd.patterns.rep_ranges, "sets", modelData.sets)
+                          valueText: modelData.sets + " sets · " + Math.round(Model.sumOf(root.dd.patterns.rep_ranges, "sets") > 0
+                            ? modelData.sets / Model.sumOf(root.dd.patterns.rep_ranges, "sets") * 100 : 0) + "%"
+                          barColor: root.hevySky
+                        }
+                      }
+                    }
+
+                    Item {
+                      id: lengthChart
+                      width: parent.width
+                      height: Style.space(86)
+                      readonly property var weeks: root.dd.duration_weeks
+                      readonly property real peak: Math.max(60, Model.sumOf([{ v: 0 }], "v"), (function() {
+                        var m = 0
+                        for (var i = 0; i < weeks.length; i++) m = Math.max(m, weeks[i].avg_min || 0)
+                        return m
+                      })())
+
+                      Repeater {
+                        model: lengthChart.weeks
+
+                        Item {
+                          id: lenCol
+                          required property var modelData
+                          required property int index
+                          width: lengthChart.width / Math.max(1, lengthChart.weeks.length)
+                          x: index * width
+                          height: lengthChart.height
+
+                          Rectangle {
+                            visible: lenCol.modelData.avg_min !== null
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width * 0.6
+                            height: Math.max(3, (lenCol.modelData.avg_min || 0) / lengthChart.peak * (lengthChart.height - Style.space(30)))
+                            y: lengthChart.height - Style.space(14) - height
+                            radius: Style.space(3)
+                            color: root.hevyViolet
+                            opacity: 0.85
+                          }
+                          Text {
+                            visible: lenCol.modelData.avg_min !== null
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: lengthChart.height - Style.space(14) - Math.max(3, (lenCol.modelData.avg_min || 0) / lengthChart.peak * (lengthChart.height - Style.space(30))) - implicitHeight
+                            text: lenCol.modelData.avg_min
+                            color: root.faint
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption - 1
+                          }
+                          Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: lengthChart.height - implicitHeight
+                            text: (lenCol.index % 3 === 0 || lenCol.index === lengthChart.weeks.length - 1) ? Model.shortDate(lenCol.modelData.start) : ""
+                            color: root.faint
+                            font.family: root.fontFamily
+                            font.pixelSize: Style.font.caption - 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "patterns" && root.dd.averages.sessions > 0
+                  title: "AVERAGES"
+                  hint: root.dd.averages.sessions + " sessions over " + root.dd.averages.span_weeks + " weeks"
+
+                  Row {
+                    width: parent.width
+
+                    StatCell { width: parent.width / 6; label: "PER WEEK"; value: String(root.dd.averages.per_week) }
+                    StatCell { width: parent.width / 6; label: "SESSION"; value: root.dd.averages.duration_min ? root.dd.averages.duration_min + " min" : "—" }
+                    StatCell { width: parent.width / 6; label: "SETS"; value: String(root.dd.averages.sets) }
+                    StatCell { width: parent.width / 6; label: "VOLUME"; value: Model.volumeShort(root.dd.averages.volume_kg, root.unit) }
+                    StatCell { width: parent.width / 6; label: "LONGEST GAP"; value: root.dd.averages.longest_gap_days + " d" }
+                    StatCell { width: parent.width / 6; label: "SINCE LAST"; value: root.dd.averages.current_gap_days + " d" }
+                  }
+                }
+
+                // ============================== HISTORY
+                HSection {
+                  width: parent.width
+                  visible: root.deep !== null && root.tab === "history"
+                  title: "RECENT SESSIONS"
+                  hint: "your last " + root.dd.recent.length + " workouts"
+
+                  Column {
+                    width: parent.width
+                    spacing: Style.space(10)
+
+                    Repeater {
+                      model: root.dd.recent
+
+                      Rectangle {
+                        id: sessionCard
+                        required property var modelData
+                        width: parent.width
+                        height: sessionColumn.implicitHeight + Style.space(18)
+                        radius: Style.space(6)
+                        color: Util.alpha(root.barForeground, 0.04)
+
+                        Column {
+                          id: sessionColumn
+                          x: Style.space(12)
+                          y: Style.space(9)
+                          width: parent.width - Style.space(24)
+                          spacing: Style.space(4)
+
+                          Item {
+                            width: parent.width
+                            height: Style.space(20)
+
+                            Text {
+                              anchors.verticalCenter: parent.verticalCenter
+                              text: sessionCard.modelData.title
+                              color: root.barForeground
+                              font.family: root.fontFamily
+                              font.pixelSize: Style.font.bodySmall
+                              font.bold: true
+                            }
+                            Text {
+                              anchors.right: parent.right
+                              anchors.verticalCenter: parent.verticalCenter
+                              text: Model.dateLabel(sessionCard.modelData.start) + "  ·  " + Model.durationLabel(sessionCard.modelData.duration_s)
+                                + "  ·  " + Model.volumeShort(sessionCard.modelData.volume_kg, root.unit) + "  ·  " + sessionCard.modelData.sets + " sets"
+                              color: root.dim
+                              font.family: root.fontFamily
+                              font.pixelSize: Style.font.caption
+                            }
+                          }
+
+                          Repeater {
+                            model: sessionCard.modelData.exercises
+
+                            Item {
+                              id: exRow
+                              required property var modelData
+                              width: parent.width
+                              height: Style.space(18)
+
+                              Text {
+                                width: parent.width * 0.6
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: exRow.modelData.title
+                                color: root.dim
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.caption
+                                elide: Text.ElideRight
+                              }
+                              Text {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: exRow.modelData.sets + " sets" + (exRow.modelData.top ? "  ·  best " + Model.setLabel(exRow.modelData.top.weight_kg, exRow.modelData.top.reps, root.unit) : "")
+                                color: root.faint
+                                font.family: root.fontFamily
+                                font.pixelSize: Style.font.caption
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+
+                Item { width: 1; height: Style.space(4) }
+              }
+            }
           }
 
           // ------------------------------------------------------- footer
@@ -1574,6 +2344,121 @@ Item {
   }
 
   // ------------------------------------------------------------- components
+
+  component HSection: Rectangle {
+    id: sec
+    property string title: ""
+    property string hint: ""
+    default property alias content: slot.data
+
+    height: slot.height + Style.space(46)
+    radius: Math.max(6, Style.cornerRadius)
+    color: root.cardBg
+
+    Text {
+      x: Style.space(14)
+      y: Style.space(11)
+      text: sec.title
+      color: root.faint
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      font.letterSpacing: 1.3
+    }
+    Text {
+      anchors.right: parent.right
+      anchors.rightMargin: Style.space(14)
+      y: Style.space(11)
+      text: sec.hint
+      color: root.faint
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      font.letterSpacing: 0.6
+    }
+    Item {
+      id: slot
+      x: Style.space(14)
+      y: Style.space(32)
+      width: sec.width - Style.space(28)
+      height: childrenRect.height
+    }
+  }
+
+  component Spark: Item {
+    id: spark
+    property var series: []
+    property color color: root.hevySky
+    readonly property var pts: Model.sparkline(series, width, height)
+
+    Shape {
+      anchors.fill: parent
+      preferredRendererType: Shape.CurveRenderer
+
+      ShapePath {
+        strokeWidth: Style.space(1.8)
+        strokeColor: spark.color
+        fillColor: "transparent"
+        capStyle: ShapePath.RoundCap
+        joinStyle: ShapePath.RoundJoin
+        PathPolyline {
+          path: spark.pts.map(function(p) { return Qt.point(p.x, p.y) })
+        }
+      }
+    }
+    Rectangle {
+      visible: spark.pts.length > 0
+      x: spark.pts.length ? spark.pts[spark.pts.length - 1].x - width / 2 : 0
+      y: spark.pts.length ? spark.pts[spark.pts.length - 1].y - height / 2 : 0
+      width: Style.space(6)
+      height: width
+      radius: width / 2
+      color: spark.color
+    }
+  }
+
+  component HBar: Item {
+    id: hb
+    property string label: ""
+    property real share: 0
+    property string valueText: ""
+    property color barColor: root.hevySky
+    property real labelWidth: Style.space(84)
+    property real valueWidth: Style.space(104)
+    height: Style.space(22)
+
+    Text {
+      width: hb.labelWidth
+      anchors.verticalCenter: parent.verticalCenter
+      text: hb.label
+      color: root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.bodySmall
+      elide: Text.ElideRight
+    }
+    Rectangle {
+      x: hb.labelWidth
+      width: hb.width - hb.labelWidth - hb.valueWidth
+      height: Style.space(8)
+      anchors.verticalCenter: parent.verticalCenter
+      radius: height / 2
+      color: root.track
+
+      Rectangle {
+        width: hb.share > 0 ? Math.max(height, parent.width * hb.share) : 0
+        height: parent.height
+        radius: height / 2
+        color: hb.barColor
+      }
+    }
+    Text {
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      text: hb.valueText
+      color: root.barForeground
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      font.bold: true
+    }
+  }
 
   component TargetRing: Item {
     id: ring

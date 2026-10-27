@@ -155,6 +155,90 @@ function truncate(text, maxLen) {
   return s.length > maxLen ? s.slice(0, maxLen - 1) + "…" : s
 }
 
+// ------------------------------------------------------------ deep dive
+
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+var TIME_LABELS = { night: "Night", morning: "Morning", midday: "Midday", afternoon: "Afternoon", evening: "Evening" }
+
+// "2026-10-14" -> "14 Oct", without Qt so it can be unit-tested.
+function shortDate(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""))
+  if (!m) return ""
+  return parseInt(m[3], 10) + " " + MONTHS[parseInt(m[2], 10) - 1]
+}
+
+function timeLabel(key) {
+  return TIME_LABELS[key] || String(key || "")
+}
+
+// "60 kg × 8" (or lb), the way a set reads in the Hevy app.
+function setLabel(weightKg, reps, unit) {
+  var w = parseNumber(weightKg), r = parseNumber(reps)
+  if (w === null || r === null) return "—"
+  return w > 0 ? weightLabel(w, unit) + " × " + Math.round(r) : Math.round(r) + " reps"
+}
+
+// A series scaled to its own range, as pixel points for a sparkline.
+function sparkline(series, width, height, pad) {
+  var values = [], i, n
+  for (i = 0; i < series.length; i++) {
+    n = parseNumber(series[i])
+    if (n !== null) values.push(n)
+  }
+  if (values.length === 0) return []
+  var lo = Math.min.apply(null, values), hi = Math.max.apply(null, values)
+  var margin = pad === undefined ? 2 : pad
+  var span = hi - lo
+  var out = []
+  for (i = 0; i < values.length; i++) {
+    var x = values.length === 1 ? width / 2 : (i / (values.length - 1)) * width
+    var frac = span > 0 ? (values[i] - lo) / span : 0.5
+    out.push({ x: x, y: margin + (1 - frac) * Math.max(0, height - margin * 2) })
+  }
+  return out
+}
+
+// How hard a muscle group was worked in a week: 0 sets is empty, 10-20 a
+// solid week, more than 20 still strong but no brighter.
+function heatAlpha(sets) {
+  var n = parseNumber(sets) || 0
+  if (n <= 0) return 0.05
+  if (n < 6) return 0.26
+  if (n < 10) return 0.5
+  if (n <= 20) return 0.88
+  return 0.7
+}
+
+// "up", "down" or "flat" for a percentage change, with a 2% dead band.
+function changeTone(pct) {
+  var n = parseNumber(pct)
+  if (n === null || Math.abs(n) < 2) return "flat"
+  return n > 0 ? "up" : "down"
+}
+
+// Fraction of the largest value in list[key], for horizontal bars.
+function barShare(list, key, value) {
+  var peak = 0
+  for (var i = 0; i < list.length; i++) peak = Math.max(peak, parseNumber(list[i][key]) || 0)
+  var n = parseNumber(value) || 0
+  return peak > 0 ? n / peak : 0
+}
+
+function sumOf(list, key) {
+  var total = 0
+  for (var i = 0; i < list.length; i++) total += parseNumber(list[i][key]) || 0
+  return total
+}
+
+// Four-week average of a muscle row, ignoring the week still in progress.
+function recentAverage(weeks) {
+  if (!weeks || weeks.length < 2) return 0
+  var slice = weeks.slice(Math.max(0, weeks.length - 5), weeks.length - 1)
+  var total = 0
+  for (var i = 0; i < slice.length; i++) total += parseNumber(slice[i]) || 0
+  return slice.length ? total / slice.length : 0
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     parseSnapshot: parseSnapshot,
@@ -175,6 +259,15 @@ if (typeof module !== "undefined") {
     relativeUpdated: relativeUpdated,
     barHeights: barHeights,
     muscleWidth: muscleWidth,
-    truncate: truncate
+    truncate: truncate,
+    shortDate: shortDate,
+    timeLabel: timeLabel,
+    setLabel: setLabel,
+    sparkline: sparkline,
+    heatAlpha: heatAlpha,
+    changeTone: changeTone,
+    barShare: barShare,
+    sumOf: sumOf,
+    recentAverage: recentAverage
   }
 }

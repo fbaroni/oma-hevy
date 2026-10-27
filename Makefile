@@ -1,4 +1,5 @@
-PLUGIN_DIR := $(HOME)/.config/omarchy/plugins/dev.fede.oma-hevy
+PLUGIN_ID  := $(shell python3 -c "import json; print(json.load(open('manifest.json'))['id'])")
+PLUGIN_DIR := $(HOME)/.config/omarchy/plugins/$(PLUGIN_ID)
 
 .PHONY: validate test demo install
 

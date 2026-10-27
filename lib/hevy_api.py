@@ -15,6 +15,8 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+import deep_dive as deeper
+
 API_BASE = "https://api.hevyapp.com/v1"
 API_TIMEOUT = 25
 USER_AGENT = "omarchy-oma-hevy/0.1 (+https://omarchy.org)"
@@ -387,6 +389,21 @@ def workout_metrics(workout: dict, templates: dict) -> dict:
     }
 
 
+def deep_helpers() -> dict:
+    return {
+        "parse_ts": parse_ts, "to_local": local, "week_start": week_start,
+        "groups": MUSCLE_TO_GROUP, "labels": MUSCLE_LABELS, "window_weeks": HISTORY_WEEKS,
+    }
+
+
+def safe_deep(workouts: list[dict], templates: dict, now: datetime):
+    """The extra tabs must never be able to break the overview."""
+    try:
+        return deeper.deep_dive(workouts, templates, now, deep_helpers())
+    except Exception as error:  # noqa: BLE001 - reported to the panel, not raised
+        return {"error": str(error)[:200]}
+
+
 def build_snapshot(workouts: list[dict], templates: dict, user: dict, count: int, body, target: int) -> dict:
     now = datetime.now().astimezone()
     metrics = [workout_metrics(workout, templates) for workout in workouts]
@@ -589,6 +606,7 @@ def build_snapshot(workouts: list[dict], templates: dict, user: dict, count: int
         "muscles": muscles,
         "records": records,
         "body": body,
+        "deep": safe_deep(workouts, templates, now),
         "totals": {
             "volume_kg": round(total(metrics, "volume_kg"), 1),
             "sets": total(metrics, "sets"),
@@ -613,7 +631,8 @@ def sync(force: bool = False) -> dict:
 
     if not force:
         cached = cached_snapshot(SNAPSHOT_TTL)
-        if cached:
+        # A snapshot saved before the extra tabs existed has no "deep": refetch it.
+        if cached and "deep" in cached:
             return cached
 
     try:
@@ -765,6 +784,7 @@ def demo_snapshot() -> dict:
             {"title": "Overhead Press (Barbell)", "weight_kg": 55, "reps": 5, "e1rm_kg": 64.2, "date": history[-2]["start"], "muscle": "Shoulders"},
         ],
         "body": {"date": history[-1]["start"], "weight_kg": 78.4, "fat_percent": 14.2, "lean_mass_kg": 67.3},
+        "deep": safe_deep(*deeper.demo_workouts(now), now),
         "totals": {
             "volume_kg": 192000,
             "sets": 1340,
