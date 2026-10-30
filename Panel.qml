@@ -453,6 +453,7 @@ Item {
               spacing: 0
 
               Text {
+                textFormat: Text.PlainText
                 text: "HEVY"
                 color: root.hevySky
                 font.family: root.fontFamily
@@ -461,6 +462,7 @@ Item {
                 font.letterSpacing: 3
               }
               Text {
+                textFormat: Text.PlainText
                 text: root.authenticated ? root.firstName : "Not connected"
                 color: root.barForeground
                 font.family: root.fontFamily
@@ -483,6 +485,7 @@ Item {
                 color: Util.alpha(root.hevyAmber, 0.16)
 
                 Text {
+                  textFormat: Text.PlainText
                   id: demoLabel
                   anchors.centerIn: parent
                   text: "SAMPLE DATA"
@@ -495,6 +498,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: !root.showConnect && !root.showLoading && !root.isDemo && root.syncLabel !== ""
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.syncLabel
@@ -580,6 +584,7 @@ Item {
                   opacity: ready ? 1 : 0.4
 
                   Text {
+                    textFormat: Text.PlainText
                     id: tabLabel
                     anchors.centerIn: parent
                     text: tabChip.modelData.label
@@ -599,6 +604,7 @@ Item {
             }
 
             Text {
+              textFormat: Text.PlainText
               anchors.right: parent.right
               anchors.verticalCenter: parent.verticalCenter
               text: root.deep === null && root.authenticated && !root.isDemo ? "refresh (⟳) to load the extra tabs" : "keys 1–4 · wheel scrolls"
@@ -623,6 +629,7 @@ Item {
               spacing: Style.space(12)
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showLoading
                 text: "Loading Hevy…"
                 color: root.dim
@@ -641,6 +648,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showConnect
                 text: "Your training, on the desktop."
                 color: root.barForeground
@@ -650,6 +658,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showConnect
                 width: parent.width
                 text: "Paste a Hevy API key to pull your workouts, weekly volume, muscle balance and top lifts. Works with Hevy Pro; create a key at hevy.com/settings?developer."
@@ -673,6 +682,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showConnect && root.keyError !== ""
                 width: parent.width
                 text: Model.truncate(root.keyError, 200)
@@ -717,6 +727,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showConnect
                 width: parent.width
                 text: "Stored locally in ~/.config/omarchy/hevy/config.json (chmod 600). Nothing leaves this machine except calls to api.hevyapp.com."
@@ -727,6 +738,7 @@ Item {
               }
 
               Text {
+                textFormat: Text.PlainText
                 visible: root.showError
                 text: "Can't reach Hevy"
                 color: root.barForeground
@@ -735,6 +747,7 @@ Item {
                 font.bold: true
               }
               Text {
+                textFormat: Text.PlainText
                 visible: root.showError
                 width: parent.width
                 text: snapshot && snapshot.message ? Model.truncate(snapshot.message, 220) : "Check your connection and try again."
@@ -798,6 +811,7 @@ Item {
                       spacing: Style.space(3)
 
                       Text {
+                        textFormat: Text.PlainText
                         text: root.hasWeekVolume ? "THIS WEEK · VOLUME" : "THIS WEEK · SESSIONS"
                         color: Util.alpha(root.hevySky, 0.92)
                         font.family: root.fontFamily
@@ -810,6 +824,7 @@ Item {
                         spacing: Style.space(6)
 
                         Text {
+                          textFormat: Text.PlainText
                           text: root.heroValue
                           color: root.barForeground
                           font.family: root.fontFamily
@@ -817,6 +832,7 @@ Item {
                           font.bold: true
                         }
                         Text {
+                          textFormat: Text.PlainText
                           text: root.heroUnit
                           color: root.dim
                           font.family: root.fontFamily
@@ -836,6 +852,7 @@ Item {
                           color: Util.alpha(root.deltaUp ? root.hevyGreen : root.hevyRose, 0.16)
 
                           Text {
+                            textFormat: Text.PlainText
                             id: deltaLabelText
                             anchors.centerIn: parent
                             text: root.deltaText
@@ -847,6 +864,7 @@ Item {
                         }
 
                         Text {
+                          textFormat: Text.PlainText
                           anchors.verticalCenter: parent.verticalCenter
                           text: (week ? week.workouts : 0) + (week && week.workouts === 1 ? " session" : " sessions")
                             + " · " + (week ? week.sets : 0)
@@ -858,6 +876,7 @@ Item {
                       }
 
                       Text {
+                        textFormat: Text.PlainText
                         text: Model.durationLabel(week ? week.duration_s : 0) + " trained · "
                           + ((week ? week.reps : 0) > 0 ? (week.reps + " reps") : "cardio / mobility")
                         color: root.faint
@@ -878,6 +897,7 @@ Item {
                       }
 
                       Text {
+                        textFormat: Text.PlainText
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "SESSIONS"
                         color: root.faint
@@ -899,6 +919,7 @@ Item {
                     height: Style.space(14)
 
                     Text {
+                      textFormat: Text.PlainText
                       anchors.left: parent.left
                       text: "WEEK"
                       color: root.faint
@@ -907,6 +928,7 @@ Item {
                       font.letterSpacing: 1.3
                     }
                     Text {
+                      textFormat: Text.PlainText
                       anchors.right: parent.right
                       text: (week ? week.target : 0) + "× TARGET · "
                         + (snapshot ? snapshot.streak_weeks : 0) + " WEEK STREAK"
@@ -943,6 +965,7 @@ Item {
                         }
 
                         Text {
+                          textFormat: Text.PlainText
                           anchors.horizontalCenter: parent.horizontalCenter
                           anchors.bottom: parent.bottom
                           text: Model.weekdayLabel(dayCell.modelData.date)
@@ -973,6 +996,7 @@ Item {
                   spacing: Style.space(6)
 
                   Text {
+                    textFormat: Text.PlainText
                     text: "RECENT SESSIONS"
                     color: root.faint
                     font.family: root.fontFamily
@@ -1021,6 +1045,7 @@ Item {
                             width: parent.width * 0.56
 
                             Text {
+                              textFormat: Text.PlainText
                               width: parent.width
                               text: recentRow.modelData.title
                               color: root.barForeground
@@ -1030,6 +1055,7 @@ Item {
                               elide: Text.ElideRight
                             }
                             Text {
+                              textFormat: Text.PlainText
                               text: Model.dateLabel(recentRow.modelData.start)
                                 + " · " + (recentRow.modelData.sets || 0)
                                 + (recentRow.modelData.sets === 1 ? " set" : " sets")
@@ -1048,6 +1074,7 @@ Item {
                             width: parent.width * 0.4
 
                             Text {
+                              textFormat: Text.PlainText
                               anchors.right: parent.right
                               text: recentRow.modelData.volume_kg > 0
                                 ? Model.volumeShort(recentRow.modelData.volume_kg, root.unit)
@@ -1058,6 +1085,7 @@ Item {
                               font.bold: true
                             }
                             Text {
+                              textFormat: Text.PlainText
                               anchors.right: parent.right
                               width: parent.width
                               horizontalAlignment: Text.AlignRight
@@ -1075,6 +1103,7 @@ Item {
                       }
 
                       Text {
+                        textFormat: Text.PlainText
                         visible: root.recent.length === 0
                         width: parent.width
                         height: Style.space(44)
@@ -1100,6 +1129,7 @@ Item {
                     height: Style.space(14)
 
                     Text {
+                      textFormat: Text.PlainText
                       anchors.left: parent.left
                       text: "CONSISTENCY"
                       color: root.faint
@@ -1108,6 +1138,7 @@ Item {
                       font.letterSpacing: 1.3
                     }
                     Text {
+                      textFormat: Text.PlainText
                       anchors.right: parent.right
                       text: "LAST 12 WEEKS"
                       color: root.faint
@@ -1154,6 +1185,7 @@ Item {
                       spacing: Style.space(5)
 
                       Text {
+                        textFormat: Text.PlainText
                         text: "DAILY VOLUME"
                         color: root.faint
                         font.family: root.fontFamily
@@ -1176,6 +1208,7 @@ Item {
                       }
 
                       Text {
+                        textFormat: Text.PlainText
                         text: (snapshot ? snapshot.streak_weeks : 0) + " week streak"
                         color: root.dim
                         font.family: root.fontFamily
@@ -1241,6 +1274,7 @@ Item {
                       height: Style.space(14)
 
                       Text {
+                        textFormat: Text.PlainText
                         anchors.left: parent.left
                         text: "12-WEEK VOLUME"
                         color: root.faint
@@ -1249,6 +1283,7 @@ Item {
                         font.letterSpacing: 1.3
                       }
                       Text {
+                        textFormat: Text.PlainText
                         anchors.right: parent.right
                         text: "AVG " + Model.volumeShort(root.totals ? root.totals.avg_week_volume_kg : 0, root.unit)
                         color: root.dim
@@ -1314,6 +1349,7 @@ Item {
                           width: (monthRow.width - Style.space(4) * 11) / 12
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.horizontalCenter: parent.horizontalCenter
                             visible: {
                               if (monthCell.index === 0) return true
@@ -1336,6 +1372,7 @@ Item {
                       height: Style.space(14)
 
                       Text {
+                        textFormat: Text.PlainText
                         anchors.left: parent.left
                         text: (root.totals && root.totals.best_week && root.totals.best_week.volume_kg > 0)
                           ? "BEST WEEK " + Model.volumeShort(root.totals.best_week.volume_kg, root.unit)
@@ -1346,6 +1383,7 @@ Item {
                         font.pixelSize: Style.font.caption
                       }
                       Text {
+                        textFormat: Text.PlainText
                         anchors.right: parent.right
                         text: (snapshot ? snapshot.total_workouts : 0) + " WORKOUTS LOGGED"
                         color: root.faint
@@ -1378,6 +1416,7 @@ Item {
                       height: Style.space(14)
 
                       Text {
+                        textFormat: Text.PlainText
                         anchors.left: parent.left
                         text: "MUSCLE BALANCE"
                         color: root.faint
@@ -1386,6 +1425,7 @@ Item {
                         font.letterSpacing: 1.3
                       }
                       Text {
+                        textFormat: Text.PlainText
                         anchors.right: parent.right
                         text: "LAST 30 DAYS"
                         color: root.faint
@@ -1406,6 +1446,7 @@ Item {
                         height: Style.space(16)
 
                         Text {
+                          textFormat: Text.PlainText
                           anchors.left: parent.left
                           anchors.verticalCenter: parent.verticalCenter
                           width: Style.space(64)
@@ -1434,6 +1475,7 @@ Item {
                         }
 
                         Text {
+                          textFormat: Text.PlainText
                           id: musclePct
                           anchors.right: parent.right
                           anchors.verticalCenter: parent.verticalCenter
@@ -1448,6 +1490,7 @@ Item {
                     }
 
                     Text {
+                      textFormat: Text.PlainText
                       visible: root.muscles.length === 0
                       text: "Log a few weighted sessions to see this."
                       color: root.faint
@@ -1467,6 +1510,7 @@ Item {
                     height: Style.space(14)
 
                     Text {
+                      textFormat: Text.PlainText
                       anchors.left: parent.left
                       text: "TOP LIFTS"
                       color: root.faint
@@ -1475,6 +1519,7 @@ Item {
                       font.letterSpacing: 1.3
                     }
                     Text {
+                      textFormat: Text.PlainText
                       anchors.right: parent.right
                       text: "BEST e1RM · 16 WEEKS"
                       color: root.faint
@@ -1518,6 +1563,7 @@ Item {
                           }
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.left: parent.left
                             anchors.leftMargin: Style.space(10)
                             anchors.verticalCenter: parent.verticalCenter
@@ -1528,6 +1574,7 @@ Item {
                           }
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.left: parent.left
                             anchors.leftMargin: Style.space(24)
                             anchors.verticalCenter: parent.verticalCenter
@@ -1540,6 +1587,7 @@ Item {
                           }
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.left: parent.left
                             anchors.leftMargin: parent.width * 0.52
                             anchors.verticalCenter: parent.verticalCenter
@@ -1551,6 +1599,7 @@ Item {
                           }
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.right: parent.right
                             anchors.rightMargin: Style.space(10)
                             anchors.verticalCenter: parent.verticalCenter
@@ -1605,6 +1654,7 @@ Item {
                 spacing: Style.space(12)
 
                 Text {
+                  textFormat: Text.PlainText
                   visible: root.deep === null
                   width: parent.width
                   horizontalAlignment: Text.AlignHCenter
@@ -1655,6 +1705,7 @@ Item {
                           width: parent.width - Style.space(34)
                           spacing: Style.space(2)
                           Text {
+                            textFormat: Text.PlainText
                             width: parent.width
                             text: tipCard.modelData.title
                             color: root.barForeground
@@ -1663,6 +1714,7 @@ Item {
                             font.bold: true
                           }
                           Text {
+                            textFormat: Text.PlainText
                             width: parent.width
                             wrapMode: Text.Wrap
                             text: tipCard.modelData.text
@@ -1686,6 +1738,7 @@ Item {
                     width: parent.width
 
                     Text {
+                      textFormat: Text.PlainText
                       visible: root.dd.progression.length === 0
                       text: "Repeat a lift in two sessions and its trend shows up here."
                       color: root.faint
@@ -1716,6 +1769,7 @@ Item {
                           width: parent.width * 0.36
                           anchors.verticalCenter: parent.verticalCenter
                           Text {
+                            textFormat: Text.PlainText
                             width: parent.width
                             text: liftRow.modelData.title
                             color: root.barForeground
@@ -1724,6 +1778,7 @@ Item {
                             elide: Text.ElideRight
                           }
                           Text {
+                            textFormat: Text.PlainText
                             width: parent.width
                             text: liftRow.modelData.muscle + " · " + liftRow.modelData.sessions + " sessions"
                             color: root.faint
@@ -1745,12 +1800,14 @@ Item {
                           width: parent.width * 0.18
                           anchors.verticalCenter: parent.verticalCenter
                           Text {
+                            textFormat: Text.PlainText
                             text: Model.setLabel(liftRow.modelData.last.weight_kg, liftRow.modelData.last.reps, root.unit)
                             color: root.dim
                             font.family: root.fontFamily
                             font.pixelSize: Style.font.caption
                           }
                           Text {
+                            textFormat: Text.PlainText
                             text: "best " + Model.weightLabel(liftRow.modelData.best_e1rm_kg, root.unit)
                             color: root.faint
                             font.family: root.fontFamily
@@ -1758,6 +1815,7 @@ Item {
                           }
                         }
                         Text {
+                          textFormat: Text.PlainText
                           anchors.right: parent.right
                           anchors.verticalCenter: parent.verticalCenter
                           text: liftRow.modelData.change_pct === null ? "—" : Model.deltaLabel(liftRow.modelData.change_pct)
@@ -1797,6 +1855,7 @@ Item {
                           color: root.line
                         }
                         Text {
+                          textFormat: Text.PlainText
                           x: 0
                           anchors.verticalCenter: parent.verticalCenter
                           text: "★"
@@ -1805,6 +1864,7 @@ Item {
                           font.pixelSize: Style.font.caption
                         }
                         Text {
+                          textFormat: Text.PlainText
                           x: Style.space(18)
                           width: parent.width * 0.4
                           anchors.verticalCenter: parent.verticalCenter
@@ -1815,6 +1875,7 @@ Item {
                           elide: Text.ElideRight
                         }
                         Text {
+                          textFormat: Text.PlainText
                           x: parent.width * 0.46
                           anchors.verticalCenter: parent.verticalCenter
                           text: Model.setLabel(prRow.modelData.weight_kg, prRow.modelData.reps, root.unit)
@@ -1823,6 +1884,7 @@ Item {
                           font.pixelSize: Style.font.caption
                         }
                         Text {
+                          textFormat: Text.PlainText
                           x: parent.width * 0.64
                           anchors.verticalCenter: parent.verticalCenter
                           text: Model.weightLabel(prRow.modelData.previous_kg, root.unit) + " → " + Model.weightLabel(prRow.modelData.e1rm_kg, root.unit)
@@ -1832,6 +1894,7 @@ Item {
                           font.bold: true
                         }
                         Text {
+                          textFormat: Text.PlainText
                           anchors.right: parent.right
                           anchors.verticalCenter: parent.verticalCenter
                           text: Model.shortDate(prRow.modelData.date)
@@ -1870,6 +1933,7 @@ Item {
                           readonly property real share: Model.barShare(root.dd.patterns.weekday, "workouts", modelData.workouts)
 
                           Text {
+                            textFormat: Text.PlainText
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: parent.height - Style.space(18) - dayBar.height - implicitHeight - Style.space(2)
                             text: dayCol.modelData.workouts
@@ -1888,6 +1952,7 @@ Item {
                             opacity: dayCol.modelData.workouts > 0 ? 0.9 : 0.25
                           }
                           Text {
+                            textFormat: Text.PlainText
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: parent.height - implicitHeight
                             text: dayCol.modelData.label
@@ -1937,6 +2002,7 @@ Item {
                       Repeater {
                         model: root.dd.weekly_sets.weeks
                         Text {
+                          textFormat: Text.PlainText
                           required property string modelData
                           width: heatGrid.cellW
                           horizontalAlignment: Text.AlignHCenter
@@ -1947,6 +2013,7 @@ Item {
                         }
                       }
                       Text {
+                        textFormat: Text.PlainText
                         width: root.gridAvgW
                         horizontalAlignment: Text.AlignRight
                         text: "avg 4w"
@@ -1965,6 +2032,7 @@ Item {
                         height: Style.space(26)
 
                         Text {
+                          textFormat: Text.PlainText
                           width: root.gridLabelW
                           height: parent.height
                           verticalAlignment: Text.AlignVCenter
@@ -1984,6 +2052,7 @@ Item {
                             color: Util.alpha(root.hevySky, Model.heatAlpha(modelData))
 
                             Text {
+                              textFormat: Text.PlainText
                               anchors.centerIn: parent
                               text: parent.modelData > 0 ? parent.modelData : "·"
                               color: parent.modelData >= 6 ? root.barForeground : root.faint
@@ -1993,6 +2062,7 @@ Item {
                           }
                         }
                         Text {
+                          textFormat: Text.PlainText
                           width: root.gridAvgW
                           height: parent.height
                           verticalAlignment: Text.AlignVCenter
@@ -2063,6 +2133,7 @@ Item {
                             color: parent.modelData.color
                           }
                           Text {
+                            textFormat: Text.PlainText
                             text: parent.modelData.label + " " + (root.dd.balance[parent.modelData.key] || 0)
                             color: root.dim
                             font.family: root.fontFamily
@@ -2135,6 +2206,7 @@ Item {
                             opacity: 0.85
                           }
                           Text {
+                            textFormat: Text.PlainText
                             visible: lenCol.modelData.avg_min !== null
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: lengthChart.height - Style.space(14) - Math.max(3, (lenCol.modelData.avg_min || 0) / lengthChart.peak * (lengthChart.height - Style.space(30))) - implicitHeight
@@ -2144,6 +2216,7 @@ Item {
                             font.pixelSize: Style.font.caption - 1
                           }
                           Text {
+                            textFormat: Text.PlainText
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: lengthChart.height - implicitHeight
                             text: (lenCol.index % 3 === 0 || lenCol.index === lengthChart.weeks.length - 1) ? Model.shortDate(lenCol.modelData.start) : ""
@@ -2209,6 +2282,7 @@ Item {
                             height: Style.space(20)
 
                             Text {
+                              textFormat: Text.PlainText
                               anchors.verticalCenter: parent.verticalCenter
                               text: sessionCard.modelData.title
                               color: root.barForeground
@@ -2217,6 +2291,7 @@ Item {
                               font.bold: true
                             }
                             Text {
+                              textFormat: Text.PlainText
                               anchors.right: parent.right
                               anchors.verticalCenter: parent.verticalCenter
                               text: Model.dateLabel(sessionCard.modelData.start) + "  ·  " + Model.durationLabel(sessionCard.modelData.duration_s)
@@ -2237,6 +2312,7 @@ Item {
                               height: Style.space(18)
 
                               Text {
+                                textFormat: Text.PlainText
                                 width: parent.width * 0.6
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: exRow.modelData.title
@@ -2246,6 +2322,7 @@ Item {
                                 elide: Text.ElideRight
                               }
                               Text {
+                                textFormat: Text.PlainText
                                 anchors.right: parent.right
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: exRow.modelData.sets + " sets" + (exRow.modelData.top ? "  ·  best " + Model.setLabel(exRow.modelData.top.weight_kg, exRow.modelData.top.reps, root.unit) : "")
@@ -2279,6 +2356,7 @@ Item {
               spacing: Style.space(4)
 
               Text {
+                textFormat: Text.PlainText
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.isDemo
                   ? "Preview only — connect to see your data."
@@ -2324,6 +2402,7 @@ Item {
               spacing: Style.space(6)
 
               Text {
+                textFormat: Text.PlainText
                 anchors.verticalCenter: parent.verticalCenter
                 text: "DATA BY"
                 color: root.faint
@@ -2375,6 +2454,7 @@ Item {
     color: root.cardBg
 
     Text {
+      textFormat: Text.PlainText
       x: Style.space(14)
       y: Style.space(11)
       text: sec.title
@@ -2384,6 +2464,7 @@ Item {
       font.letterSpacing: 1.3
     }
     Text {
+      textFormat: Text.PlainText
       anchors.right: parent.right
       anchors.rightMargin: Style.space(14)
       y: Style.space(11)
@@ -2445,6 +2526,7 @@ Item {
     height: Style.space(22)
 
     Text {
+      textFormat: Text.PlainText
       width: hb.labelWidth
       anchors.verticalCenter: parent.verticalCenter
       text: hb.label
@@ -2469,6 +2551,7 @@ Item {
       }
     }
     Text {
+      textFormat: Text.PlainText
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
       text: hb.valueText
@@ -2531,6 +2614,7 @@ Item {
       spacing: -2
 
       Text {
+        textFormat: Text.PlainText
         anchors.horizontalCenter: parent.horizontalCenter
         text: ring.done + "/" + ring.target
         color: root.barForeground
@@ -2539,6 +2623,7 @@ Item {
         font.bold: true
       }
       Text {
+        textFormat: Text.PlainText
         anchors.horizontalCenter: parent.horizontalCenter
         text: "WEEK"
         color: root.faint
@@ -2556,6 +2641,7 @@ Item {
     spacing: Style.space(2)
 
     Text {
+      textFormat: Text.PlainText
       text: cell.label
       color: root.faint
       font.family: root.fontFamily
@@ -2563,6 +2649,7 @@ Item {
       font.letterSpacing: 1
     }
     Text {
+      textFormat: Text.PlainText
       text: cell.value
       color: root.barForeground
       font.family: root.fontFamily
