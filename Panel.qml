@@ -2283,14 +2283,19 @@ Item {
 
                             Text {
                               textFormat: Text.PlainText
+                              anchors.left: parent.left
+                              anchors.right: sessionStats.left
+                              anchors.rightMargin: Style.space(8)
                               anchors.verticalCenter: parent.verticalCenter
                               text: sessionCard.modelData.title
                               color: root.barForeground
                               font.family: root.fontFamily
                               font.pixelSize: Style.font.bodySmall
                               font.bold: true
+                              elide: Text.ElideRight
                             }
                             Text {
+                              id: sessionStats
                               textFormat: Text.PlainText
                               anchors.right: parent.right
                               anchors.verticalCenter: parent.verticalCenter
