@@ -8,6 +8,7 @@ validate:
 
 test:
 	node --test tests/
+	python3 -m unittest discover tests
 
 demo:
 	python3 bin/hevy-sync.py --demo | python3 -m json.tool

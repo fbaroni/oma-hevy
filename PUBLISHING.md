@@ -7,21 +7,21 @@ The marketplace lists public GitHub repositories that carry a valid root
 
 ```sh
 cd ~/code/oma-hevy
-git remote add origin git@github.com:<your-username>/oma-hevy.git
+git remote add origin git@github.com:fbaroni/oma-hevy.git
 git push -u origin main
 ```
 
 Make sure the repository is **public** and that the README renders the preview:
 
 ```
-https://github.com/<your-username>/oma-hevy
+https://github.com/fbaroni/oma-hevy
 ```
 
 ## 2. Smoke-test a clean install
 
 ```sh
 omarchy plugin remove fbaroni.oma-hevy --yes
-omarchy plugin add https://github.com/<your-username>/oma-hevy.git --enable
+omarchy plugin add https://github.com/fbaroni/oma-hevy.git --enable
 ```
 
 Click the bar widget, paste an API key, confirm the dashboard opens and syncs.
@@ -39,10 +39,10 @@ Suggested answers:
 | Field | Value |
 | --- | --- |
 | Title | `[Plugin]: Omahevy` |
-| Repository URL | `https://github.com/<your-username>/oma-hevy` |
+| Repository URL | `https://github.com/fbaroni/oma-hevy` |
 | Category | `Widgets` |
-| Tags | `Bar`, `Quickshell` (max three; these two fit) |
-| Suggested missing tag | `Fitness` |
+| Tags | `bar, quickshell` (max three; these two fit) |
+| Suggested missing tag | `fitness` |
 | Maintainer notes | see below |
 
 Maintainer notes to paste:

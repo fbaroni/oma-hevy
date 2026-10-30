@@ -34,13 +34,25 @@ directly to `api.hevyapp.com`; there is no third-party server.
 ## Install
 
 ```sh
-omarchy plugin add https://github.com/<your-username>/oma-hevy.git --enable
+omarchy plugin add https://github.com/fbaroni/oma-hevy.git --enable
 ```
 
 Then move it wherever you like in the bar:
 
 ```sh
 omarchy bar move fbaroni.oma-hevy --section right
+```
+
+## Remove
+
+```sh
+omarchy plugin remove fbaroni.oma-hevy
+```
+
+To also remove your stored API key and local cache:
+
+```sh
+rm -rf ~/.config/omarchy/hevy ~/.cache/omarchy/hevy
 ```
 
 ## Setup
@@ -96,7 +108,7 @@ Cached data lives in `~/.cache/omarchy/hevy/` (`snapshot.json`, plus an
 ## Development
 
 ```sh
-git clone https://github.com/<your-username>/oma-hevy.git
+git clone https://github.com/fbaroni/oma-hevy.git
 cd oma-hevy
 
 make validate   # omarchy plugin validate .
@@ -126,8 +138,8 @@ the plugin. After structural changes to `Panel.qml`, restart the shell once
 1. Push this folder to a **public** GitHub repository.
 2. Open the Omarchy plugin marketplace submission form:
    <https://github.com/omacom/omarchy-plugin-marketplace/issues/new?template=submit-plugin.yml>
-3. Use the repo URL, category **Widgets**, and tags **Bar** + **Quickshell**.
-   Suggest **Fitness** as a missing tag (the marketplace only accepts 1–3
+3. Use the repo URL, category **Widgets**, and tags `bar` + `quickshell`.
+   Suggest `fitness` as a missing tag (the marketplace only accepts 1–3
    existing tags per submission).
 
 The marketplace indexes the root `manifest.json`, so keep the ID
