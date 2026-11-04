@@ -111,8 +111,8 @@ Item {
   readonly property var dayHeights: Model.barHeights(
     week ? week.days.map(function(d) { return d.volume_kg }) : [], 26)
 
-  readonly property color hevyBlue: "#1D83EA"
-  readonly property color hevySky: "#5AB4FF"
+  readonly property color hevyBlue: Color.accent
+  readonly property color hevySky: Qt.lighter(hevyBlue, 1.35)
   readonly property color hevyAmber: "#FF9D28"
   readonly property color hevyGreen: "#5FD08A"
   readonly property color hevyRose: "#E5678A"
