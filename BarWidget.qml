@@ -71,7 +71,7 @@ BarWidget {
     verticalPadding: 6
     fixedHeight: root.barSize
     active: panelLoader.item ? panelLoader.item.authenticated : false
-    activeColor: "#5AB4FF"
+    activeColor: Color.accent
     tooltipText: {
       if (!panelLoader.item || !panelLoader.item.authenticated) return "Hevy — click to connect"
       var snap = panelLoader.item.snapshot
